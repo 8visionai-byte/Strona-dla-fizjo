@@ -35,19 +35,30 @@ Legenda: **DONE** = zrobione i zweryfikowane dowodem · **CLAIMED-UNVERIFIED** =
 
 | # | Zadanie | Stan | Dowód |
 |---|---|---|---|
-| 2.1 | Katalog 40 zdjęć: opis, kolory, jakość, przypisanie do sekcji | **W TOKU** | workflow `wf_6c319e66-e69` |
+| 2.1 | Katalog 40 zdjęć: opis, kolory, jakość, przypisanie do sekcji | **DONE** | workflow `wf_6c319e66-e69`, 6 agentów, wyniki w `docs/MAPA-SEKCJI.md` |
 | 2.2 | Prompty do Higgsfield na 5 klipów + anatomia | **DONE** | `docs/PROMPTY-WIDEO.md`, parametry modeli odczytane z API Higgsfield |
-| 2.3 | Wygenerowanie klipów przez Pawła | **NIERUSZONE** | czeka na akceptację KLIPU 1 |
-| 2.4 | Ilustracje anatomiczne (warstwy) | **NIERUSZONE** | ryzyko opisane w `docs/PROMPTY-WIDEO.md` |
-| 2.5 | Kompresja zdjęć do WebP i klipów do ~2 MB | **NIERUSZONE** | |
+| 2.3 | Kompresja zdjęć do WebP | **DONE** | 40/40 plików, 72 MB → 2,59 MB, średnio 66 KB, zero błędów |
+| 2.4 | Wygenerowanie klipów przez Pawła | **NIERUSZONE** | czeka na akceptację KLIPU 1 |
+| 2.5 | Ilustracje anatomiczne (warstwy) | **NIERUSZONE** | ryzyko opisane w `docs/PROMPTY-WIDEO.md` |
 
-## Etap 3. Specyfikacja i plan
+## Etap 3. Budowa strony
 
-**NIERUSZONE.** Warunek wejścia: zamknięty katalog zdjęć i uzupełnione braki z sekcji poniżej.
+| # | Zadanie | Stan | Dowód |
+|---|---|---|---|
+| 3.1 | System designu: kolory ze zdjęć, typografia, siatka | **DONE** | `assets/css/style.css`, paleta w `docs/MAPA-SEKCJI.md` |
+| 3.2 | Dziewięć sekcji z treścią | **DONE** | `index.html`, 11 kontroli treści przeszło |
+| 3.3 | Animacje wejścia sterowane scrollem | **DONE** | `assets/js/app.js`, GSAP + ScrollTrigger + Lenis |
+| 3.4 | Obsługa braku JS i preferencji ograniczenia ruchu | **DONE** | `<noscript>` w `index.html`, `prefers-reduced-motion` w CSS |
+| 3.5 | Formularz: walidacja, pułapka na boty, zgoda RODO | **DONE** | `assets/js/app.js` |
+| 3.6 | Podpięcie webhooka Make | **ZABLOKOWANE** | brak adresu, stała `WEBHOOK_MAKE` w `assets/js/app.js` jest pusta |
+| 3.7 | Polityka prywatności | **CLAIMED-UNVERIFIED** | `polityka-prywatnosci.html` gotowa, ale dane firmy w nawiasach do uzupełnienia, bez sprawdzenia przez prawnika |
+| 3.8 | Test lokalny | **DONE** | serwer lokalny: wszystkie zasoby HTTP 200, 404 działa, 11/11 kontroli treści |
+| 3.9 | Push i wdrożenie na Vercelu | **CLAIMED-UNVERIFIED** | commit `6afccde` wypchnięty; nie widziałem strony w przeglądarce |
 
-## Etap 4. Budowa strony
+## Etap 4. Film w tle zamiast zdjęć
 
-**NIERUSZONE.** Kolejność: system designu → hero → sekcje → formularz → RODO → wdrożenie.
+**NIERUSZONE.** Warunek wejścia: zaakceptowany KLIP 1 z `docs/PROMPTY-WIDEO.md`.
+Struktura sekcji `.ekran__tlo` jest już przygotowana pod podmianę `<img>` na `<video>`.
 
 ---
 
