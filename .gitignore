@@ -1,0 +1,22 @@
+# Zdjęcia źródłowe z ChatGPT (72 MB PNG).
+# Na stronę trafiają zoptymalizowane WebP w assets/img/, a nie te pliki.
+# Oryginały leżą lokalnie i są zarchiwizowane w historii repo Fizjoplan (commit 94badf8).
+zdjecia-zrodlowe/
+
+# Materiały wideo źródłowe z Higgsfield (przed kompresją)
+wideo-zrodlowe/
+
+# Zależności i build
+node_modules/
+dist/
+.vercel/
+
+# Sekrety — NIGDY do repo
+.env
+.env.*
+!.env.example
+
+# System
+.DS_Store
+Thumbs.db
+*.log
