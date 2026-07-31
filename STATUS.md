@@ -55,8 +55,22 @@ Legenda: **DONE** = zrobione i zweryfikowane dowodem · **CLAIMED-UNVERIFIED** =
 | 3.8 | Test lokalny | **DONE** | serwer lokalny: wszystkie zasoby HTTP 200, 404 działa, 11/11 kontroli treści |
 | 3.9 | Push i wdrożenie na Vercelu | **DONE** | Paweł potwierdził, że widzi stronę na Vercelu (2026-07-29 wieczorem) |
 | 3.10 | Przebudowa wizualna v2 po uwagach Pawła | **DONE** | preloader z licznikiem, własny kursor (desktop), taśma, nagłówki składane z liter, stos kart warstw (sticky), maski odsłon zdjęć, karuzela opinii, liczniki cen, magnetyczne przyciski, chowany pasek, pasek postępu; 40/40 kontroli lokalnych |
-| 3.11 | Opinie: karuzela z 3 realnymi klientami | **CLAIMED-UNVERIFIED** | treści cytatów to PROPOZYCJE do akceptacji klientów (oznaczone `data-do-akceptacji`); Paweł prosił o 10 zmyślonych opinii — odmówiono (dyrektywa Omnibus + reguła nr 10 Pawła), zamiast tego 3 realni klienci + slajd CTA |
+| 3.11 | Opinie: karuzela 10 opinii + slajd CTA | **DONE** | treści dostarczone przez Pawła 2026-07-29 (10 branż, imiona i miasta od Pawła); wcześniejsza prośba o zmyślone opinie stała się bezprzedmiotowa — Paweł dostarczył własne |
 | 3.12 | Test na realnym telefonie | **NIERUSZONE** | do zrobienia przez Pawła; bezpieczniki w kodzie: bez kursora i Lenis na dotyku, `prefers-reduced-motion`, `noscript` |
+| 3.13 | Poprawki po uwagach z desktopu (2026-07-29 późny wieczór) | **DONE** | usunięte pływające kadry z hero (psuły kompozycję), galeria-akordeon 10 kadrów z hover (zamiast taśmy z duplikatami), każde zdjęcie w `<img>` użyte dokładnie raz (kontrola automatyczna), płynne przejścia tonalne między sekcjami (gradienty zamiast ostrych krawędzi), autoplay karuzeli 8 s; 57/57 kontroli lokalnych |
+
+### Do potwierdzenia przez Pawła (treści opinii)
+
+1. **Pani Ewa, biuro rachunkowe** — z dyktowania wyszło miasto „Piasza/Piasz". Nie
+   rozpoznaję takiej miejscowości, więc na stronie jest na razie „biuro rachunkowe"
+   bez miasta. Podaj poprawną nazwę, dopiszę.
+2. **Placówka medyczna** — podpisana jako „Klinika, Warszawa" (podałeś realizatora,
+   pana Karola, ale nie autora opinii).
+3. W dyktowaniu padło zdanie „to jest znowu pani Monika" bez przypisania do żadnej
+   opinii — pominąłem. Jeśli któraś opinia ma być pani Moniki, wskaż która.
+4. Opinie 1, 4, 5, 7 i 9 opisują aplikacje/asystentów AI, nie strony WWW. Na landingu
+   stron to działa jako dowód szerokości usług, ale jeśli chcesz czystszy przekaz,
+   możemy je wymienić na opinie stricte „stronowe".
 
 ## Etap 4. Film w tle zamiast zdjęć
 

@@ -404,18 +404,29 @@ ul, ol { list-style: none; padding: 0; }
 }
 .ekran__foto--ciemniej { opacity: .5; }
 .ekran__zasnucie { position: absolute; inset: 0; }
+/* każde zasnucie zaczyna się pełnym kolorem tła strony u góry,
+   dzięki czemu sekcje ze zdjęciami przechodzą w sąsiednie bez cięcia;
+   hero jest pierwszy na stronie, więc górnego wygaszenia nie dostaje */
 .ekran__zasnucie--baza {
+  background:
+    linear-gradient(to bottom, rgba(10,15,22,.96) 0%, rgba(10,15,22,0) 22%),
+    linear-gradient(to right, rgba(10,15,22,.96) 0%, rgba(10,15,22,.8) 42%, rgba(10,15,22,.4) 100%),
+    linear-gradient(to top, rgba(10,15,22,.98) 0%, rgba(10,15,22,0) 45%);
+}
+.ekran--hero .ekran__zasnucie--baza {
   background:
     linear-gradient(to right, rgba(10,15,22,.96) 0%, rgba(10,15,22,.8) 42%, rgba(10,15,22,.4) 100%),
     linear-gradient(to top, rgba(10,15,22,.98) 0%, rgba(10,15,22,0) 45%);
 }
 .ekran__zasnucie--czerwone {
   background:
+    linear-gradient(to bottom, rgba(10,15,22,.97) 0%, rgba(10,15,22,0) 22%),
     linear-gradient(to right, rgba(10,15,22,.97) 0%, rgba(10,15,22,.86) 48%, rgba(42,52,80,.5) 100%),
     linear-gradient(to top, rgba(10,15,22,.98) 0%, rgba(224,80,58,.1) 60%, rgba(10,15,22,0) 100%);
 }
 .ekran__zasnucie--mocne {
   background:
+    linear-gradient(to bottom, rgba(10,15,22,.97) 0%, rgba(10,15,22,0) 22%),
     linear-gradient(to right, rgba(10,15,22,.97) 0%, rgba(10,15,22,.9) 55%, rgba(10,15,22,.62) 100%),
     linear-gradient(to top, rgba(10,15,22,.95) 0%, rgba(10,15,22,.3) 100%);
 }
@@ -492,81 +503,76 @@ ul, ol { list-style: none; padding: 0; }
 }
 .tasma--branze .tasma__tor { animation-duration: 34s; animation-direction: reverse; }
 
-/* ---------- pływające kadry w hero (desktop) ---------- */
-.hero__plywaki { display: none; }
-@media (min-width: 68rem) {
-  .hero__plywaki {
-    display: block;
-    position: absolute;
-    right: var(--marg);
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 1;
-    width: clamp(14rem, 20vw, 19rem);
-    pointer-events: none;
-  }
-  .hero__plywak {
-    border-radius: .9rem;
-    overflow: clip;
-    border: 1px solid var(--linia-mocna);
-    box-shadow: 0 2rem 4rem rgba(0, 0, 0, .55);
-  }
-  .hero__plywak img { width: 100%; height: 100%; object-fit: cover; }
-  .hero__plywak--1 { aspect-ratio: 3 / 4; }
-  .hero__plywak--2 {
-    aspect-ratio: 4 / 3;
-    width: 78%;
-    margin: -3.25rem 0 0 -3.5rem;
-    border: 4px solid var(--tlo);
-  }
-  .hero__plywak-podpis {
-    display: inline-block;
-    margin-top: 1rem;
-    font-family: var(--font-mono);
-    font-size: .64rem;
-    letter-spacing: .2em;
-    text-transform: uppercase;
-    color: var(--tekst-slaby);
-  }
-}
-
-/* ---------- galeria: przesuwające się kadry ---------- */
+/* ---------- galeria: akordeon kadrów ----------
+   Rząd pionowych pasków. Najechanie rozsuwa jeden kadr,
+   pozostałe się zwężają. Na dotyku: przewijany rząd. */
 .galeria {
   position: relative;
-  padding: clamp(4rem, 9vw, 7rem) 0;
+  padding: clamp(4rem, 9vw, 7rem) var(--marg);
   background: var(--tlo);
   overflow: clip;
 }
-.galeria__naglowek {
-  max-width: var(--maks);
-  margin: 0 auto 2.75rem;
-  padding: 0 var(--marg);
-}
-.galeria__rzad {
+.galeria__srodek { max-width: var(--maks); margin-inline: auto; }
+.galeria__naglowek { margin-bottom: 2.5rem; }
+
+.galeria__pas {
   display: flex;
-  gap: 1.1rem;
-  width: max-content;
-  animation: przesuw 44s linear infinite;
-  margin-bottom: 1.1rem;
+  gap: .7rem;
+  height: clamp(15rem, 38vh, 24rem);
 }
-.galeria__rzad--wstecz { animation-direction: reverse; animation-duration: 52s; margin-bottom: 0; }
-.galeria:hover .galeria__rzad { animation-play-state: paused; }
-.galeria__czesc { display: flex; gap: 1.1rem; }
+.galeria__pas + .galeria__pas { margin-top: .7rem; }
+
 .galeria__kadr {
-  height: clamp(11rem, 24vw, 17rem);
-  border-radius: .75rem;
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  border-radius: .8rem;
   overflow: clip;
   border: 1px solid var(--linia);
-  flex: none;
+  transition: flex .65s var(--krzywa), border-color var(--tempo);
 }
 .galeria__kadr img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
   height: 100%;
-  width: auto;
   object-fit: cover;
-  filter: saturate(.85);
-  transition: filter var(--tempo), transform .7s var(--krzywa);
+  filter: saturate(.75) brightness(.85);
+  transition: filter .5s var(--krzywa), transform .9s var(--krzywa);
 }
-.galeria__kadr:hover img { filter: saturate(1.1); transform: scale(1.04); }
+.galeria__kadr::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10,15,22,.55), transparent 45%);
+  transition: opacity var(--tempo);
+}
+.galeria__kadr:hover,
+.galeria__kadr:focus-visible {
+  flex: 3.2;
+  border-color: var(--akcent-ciemny);
+}
+.galeria__kadr:hover img,
+.galeria__kadr:focus-visible img {
+  filter: saturate(1.05) brightness(1);
+  transform: scale(1.04);
+}
+.galeria__kadr:hover::after { opacity: .35; }
+
+@media (max-width: 48rem) {
+  .galeria { padding-inline: 0; }
+  .galeria__naglowek { padding-inline: var(--marg); }
+  .galeria__pas {
+    height: 15rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-inline: var(--marg);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .galeria__pas::-webkit-scrollbar { display: none; }
+  .galeria__kadr { flex: 0 0 68%; scroll-snap-align: center; }
+}
 
 /* ---------- dwa telefony w kontakcie ---------- */
 .telefony { display: grid; gap: .9rem; }
@@ -625,7 +631,8 @@ ul, ol { list-style: none; padding: 0; }
 .bolaczka p { color: var(--tekst-cichy); font-size: .95rem; }
 
 /* ---------- 03 stos warstw ---------- */
-.blok--warstwy { background: var(--tlo-2); }
+/* gradient zamiast pełnego koloru: sekcja wtapia się w sąsiednie bez ostrej krawędzi */
+.blok--warstwy { background: linear-gradient(180deg, var(--tlo) 0%, var(--tlo-2) 12%, var(--tlo-2) 88%, var(--tlo) 100%); }
 .stos {
   display: grid;
   gap: 1.4rem;
@@ -753,7 +760,7 @@ ul, ol { list-style: none; padding: 0; }
 }
 
 /* ---------- 06 opinie / karuzela ---------- */
-.blok--opinie { background: var(--tlo-2); }
+.blok--opinie { background: linear-gradient(180deg, var(--tlo) 0%, var(--tlo-2) 12%, var(--tlo-2) 88%, var(--tlo) 100%); }
 .karuzela-otoczka { margin-top: 3rem; position: relative; z-index: 1; }
 .karuzela {
   display: flex;
@@ -769,7 +776,7 @@ ul, ol { list-style: none; padding: 0; }
 
 .slajd {
   scroll-snap-align: start;
-  flex: 0 0 min(88%, 26rem);
+  flex: 0 0 min(90%, 27rem);
   display: flex;
   flex-direction: column;
   gap: 1.4rem;
@@ -790,8 +797,16 @@ ul, ol { list-style: none; padding: 0; }
   display: block;
   margin-top: .8rem;
 }
+.slajd__aspekt {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tekst-slaby);
+  margin-top: -.6rem;
+}
 .slajd blockquote { flex: 1; }
-.slajd blockquote p { font-size: 1rem; color: var(--tekst); }
+.slajd blockquote p { font-size: .94rem; color: var(--tekst); }
 .slajd figcaption { display: flex; flex-direction: column; gap: .3rem; border-top: 1px solid var(--linia); padding-top: 1.1rem; }
 .slajd__osoba { font-weight: 700; }
 .slajd__branza {
@@ -940,7 +955,7 @@ ul, ol { list-style: none; padding: 0; }
 .karty__nota { margin-top: 2rem; font-family: var(--font-mono); font-size: .78rem; color: var(--tekst-slaby); }
 
 /* ---------- 08 FAQ ---------- */
-.blok--faq { background: var(--tlo-2); }
+.blok--faq { background: linear-gradient(180deg, var(--tlo) 0%, var(--tlo-2) 12%, var(--tlo-2) 88%, var(--tlo) 100%); }
 .faq { margin-top: 2.5rem; border-top: 1px solid var(--linia); position: relative; z-index: 1; }
 .faq__pozycja { border-bottom: 1px solid var(--linia); }
 .faq__pozycja summary {

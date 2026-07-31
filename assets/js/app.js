@@ -310,13 +310,18 @@ if (!maGsap || mniejRuchu) {
     });
   });
 
-  /* pływające kadry w hero: każdy jedzie z inną prędkością */
-  document.querySelectorAll('.hero__plywak').forEach((el, i) => {
-    gsap.to(el, {
-      yPercent: i === 0 ? -14 : 10,
-      ease: 'none',
-      scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true },
-    });
+  /* galeria: kadry wyskakują jeden po drugim przy wejściu w kadr */
+  document.querySelectorAll('.galeria__pas').forEach((pas) => {
+    const kadry = pas.querySelectorAll('.galeria__kadr');
+    gsap.fromTo(kadry,
+      { opacity: 0, y: 44, scale: 0.92 },
+      {
+        opacity: 1, y: 0, scale: 1,
+        duration: 0.7,
+        ease: 'power3.out',
+        stagger: 0.09,
+        scrollTrigger: { trigger: pas, start: 'top 86%', once: true },
+      });
   });
 
   /* magnetyczne przyciski (desktop) */
@@ -373,11 +378,12 @@ if (!maGsap || mniejRuchu) {
 
   /* autoprzewijanie: kręci się samo, zatrzymuje przy każdym dotknięciu */
   if (!mniejRuchu) {
+    /* dłuższy odstęp: opinie są teraz pełnej długości i trzeba zdążyć je przeczytać */
     let auto = setInterval(() => {
       const i = indeks();
       const cel = i >= slajdy.length - 1 ? 0 : i + 1;
       tor.scrollTo({ left: cel * szerokosc(), behavior: 'smooth' });
-    }, 5500);
+    }, 8000);
     const stop = () => { clearInterval(auto); auto = null; };
     ['pointerdown', 'wheel', 'touchstart', 'focusin'].forEach((zd) =>
       tor.addEventListener(zd, stop, { passive: true, once: true }));
