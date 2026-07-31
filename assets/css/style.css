@@ -46,7 +46,10 @@
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; }
 
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; }
+/* płynne kotwice tylko bez JS; z JS scrolluje Lenis albo scrollIntoView,
+   podwójne wygładzanie powodowało szarpanie */
+html:not(.js) { scroll-behavior: smooth; }
 
 body {
   background: var(--tlo);
@@ -71,12 +74,13 @@ ul, ol { list-style: none; padding: 0; }
 ::selection { background: var(--akcent); color: var(--tekst-ciemny); }
 
 /* ---------- ziarno ---------- */
+/* bez mix-blend-mode: nakładka mieszająca kolory na całym ekranie
+   wymuszała przeliczanie kompozycji przy każdej klatce scrolla */
 .ziarno {
   position: fixed; inset: 0;
   z-index: 9990;
   pointer-events: none;
-  opacity: .3;
-  mix-blend-mode: overlay;
+  opacity: .05;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
 }
 
@@ -294,7 +298,8 @@ ul, ol { list-style: none; padding: 0; }
 
 /* linie dzielone na litery — kontener maskuje, litery wjeżdżają */
 .js [data-litery] .slowo { display: inline-block; overflow: clip; vertical-align: top; }
-.js [data-litery] .litera { display: inline-block; will-change: transform; }
+/* bez will-change: kilkaset liter dostawało własne warstwy kompozycji */
+.js [data-litery] .litera { display: inline-block; }
 
 .lead {
   font-size: clamp(1.05rem, .98rem + .5vw, 1.32rem);
@@ -310,18 +315,20 @@ ul, ol { list-style: none; padding: 0; }
 .znak-wodny {
   position: absolute;
   z-index: 0;
-  right: -.06em;
-  top: -.18em;
+  right: 0;
+  top: .5rem;
   font-family: var(--font-display);
   font-variation-settings: 'wdth' 115, 'wght' 800;
-  font-size: clamp(7rem, 24vw, 17rem);
+  font-size: clamp(6rem, 16vw, 12rem);
   line-height: 1;
   letter-spacing: -.04em;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(242, 240, 236, .07);
+  -webkit-text-stroke: 1px rgba(242, 240, 236, .05);
   pointer-events: none;
   user-select: none;
 }
+/* na wąskich ekranach znak wodny wchodził pod nagłówki */
+@media (max-width: 48rem) { .znak-wodny { display: none; } }
 
 /* ---------- przyciski ---------- */
 .przyciski { display: flex; flex-wrap: wrap; gap: .85rem; margin-bottom: 1.4rem; }
@@ -366,16 +373,19 @@ ul, ol { list-style: none; padding: 0; }
   border-radius: 50%;
   pointer-events: none;
   filter: blur(70px);
-  opacity: .55;
-  animation: dryf 14s ease-in-out infinite alternate;
+  opacity: .45;
 }
-.poswiata--turkus { background: radial-gradient(closest-side, rgba(63,191,179,.32), transparent 70%); }
-.poswiata--granat { background: radial-gradient(closest-side, rgba(42,52,80,.85), transparent 70%); }
+.poswiata--turkus { background: radial-gradient(closest-side, rgba(63,191,179,.3), transparent 70%); }
+.poswiata--granat { background: radial-gradient(closest-side, rgba(42,52,80,.8), transparent 70%); }
+/* dryf tylko na desktopie: ciągła animacja rozmytej plamy obciąża słabe GPU */
+@media (min-width: 62rem) {
+  .poswiata { animation: dryf 16s ease-in-out infinite alternate; }
+}
 @keyframes dryf {
   from { transform: translate(0, 0) scale(1); }
-  to   { transform: translate(6%, -8%) scale(1.15); }
+  to   { transform: translate(6%, -8%) scale(1.12); }
 }
-@media (max-width: 48rem) { .poswiata { filter: blur(46px); opacity: .4; } }
+@media (max-width: 48rem) { .poswiata { filter: blur(44px); opacity: .35; } }
 
 /* ---------- sekcje pełnoekranowe ---------- */
 .ekran {
@@ -471,6 +481,97 @@ ul, ol { list-style: none; padding: 0; }
 }
 @keyframes przesuw { to { transform: translateX(-50%); } }
 
+.tasma--branze { background: var(--tlo); padding: .8rem 0; }
+.tasma--branze .tasma__el {
+  font-family: var(--font-mono);
+  font-variation-settings: normal;
+  font-size: .78rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--tekst-slaby);
+}
+.tasma--branze .tasma__tor { animation-duration: 34s; animation-direction: reverse; }
+
+/* ---------- pływające kadry w hero (desktop) ---------- */
+.hero__plywaki { display: none; }
+@media (min-width: 68rem) {
+  .hero__plywaki {
+    display: block;
+    position: absolute;
+    right: var(--marg);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    width: clamp(14rem, 20vw, 19rem);
+    pointer-events: none;
+  }
+  .hero__plywak {
+    border-radius: .9rem;
+    overflow: clip;
+    border: 1px solid var(--linia-mocna);
+    box-shadow: 0 2rem 4rem rgba(0, 0, 0, .55);
+  }
+  .hero__plywak img { width: 100%; height: 100%; object-fit: cover; }
+  .hero__plywak--1 { aspect-ratio: 3 / 4; }
+  .hero__plywak--2 {
+    aspect-ratio: 4 / 3;
+    width: 78%;
+    margin: -3.25rem 0 0 -3.5rem;
+    border: 4px solid var(--tlo);
+  }
+  .hero__plywak-podpis {
+    display: inline-block;
+    margin-top: 1rem;
+    font-family: var(--font-mono);
+    font-size: .64rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--tekst-slaby);
+  }
+}
+
+/* ---------- galeria: przesuwające się kadry ---------- */
+.galeria {
+  position: relative;
+  padding: clamp(4rem, 9vw, 7rem) 0;
+  background: var(--tlo);
+  overflow: clip;
+}
+.galeria__naglowek {
+  max-width: var(--maks);
+  margin: 0 auto 2.75rem;
+  padding: 0 var(--marg);
+}
+.galeria__rzad {
+  display: flex;
+  gap: 1.1rem;
+  width: max-content;
+  animation: przesuw 44s linear infinite;
+  margin-bottom: 1.1rem;
+}
+.galeria__rzad--wstecz { animation-direction: reverse; animation-duration: 52s; margin-bottom: 0; }
+.galeria:hover .galeria__rzad { animation-play-state: paused; }
+.galeria__czesc { display: flex; gap: 1.1rem; }
+.galeria__kadr {
+  height: clamp(11rem, 24vw, 17rem);
+  border-radius: .75rem;
+  overflow: clip;
+  border: 1px solid var(--linia);
+  flex: none;
+}
+.galeria__kadr img {
+  height: 100%;
+  width: auto;
+  object-fit: cover;
+  filter: saturate(.85);
+  transition: filter var(--tempo), transform .7s var(--krzywa);
+}
+.galeria__kadr:hover img { filter: saturate(1.1); transform: scale(1.04); }
+
+/* ---------- dwa telefony w kontakcie ---------- */
+.telefony { display: grid; gap: .9rem; }
+@media (min-width: 30rem) { .telefony { grid-template-columns: 1fr 1fr; } }
+
 /* ---------- sekcje zwykłe ---------- */
 .blok { position: relative; padding: clamp(5rem, 12vw, 9rem) var(--marg); overflow: clip; }
 .ramka { position: relative; z-index: 1; max-width: var(--maks); margin-inline: auto; }
@@ -534,19 +635,23 @@ ul, ol { list-style: none; padding: 0; }
 }
 .stos__karta {
   position: sticky;
-  top: calc(var(--pasek-h) + 1rem + var(--i, 0) * 1.1rem);
+  top: calc(var(--pasek-h) + .9rem + var(--i, 0) * 1rem);
   display: grid;
   grid-template-columns: 1fr;
   background: var(--tlo-karta);
   border: 1px solid var(--linia);
   border-radius: 1rem;
   overflow: clip;
-  will-change: transform;
   transform-origin: center top;
-  box-shadow: 0 -1rem 3rem rgba(0, 0, 0, .35);
+  box-shadow: 0 -.75rem 2rem rgba(0, 0, 0, .3);
 }
 @media (min-width: 48rem) {
-  .stos__karta { grid-template-columns: 1fr 1.35fr; min-height: 24rem; }
+  .stos__karta {
+    grid-template-columns: 1fr 1.35fr;
+    min-height: 20rem;
+    /* karta musi być niższa niż ekran, inaczej stos zasłania treść zanim ktoś ją przeczyta */
+    max-height: calc(100svh - var(--pasek-h) - 6rem);
+  }
 }
 .stos__foto { aspect-ratio: 16 / 10; }
 @media (min-width: 48rem) { .stos__foto { aspect-ratio: auto; height: 100%; } }
@@ -577,8 +682,7 @@ ul, ol { list-style: none; padding: 0; }
 /* ---------- 04 konkrety ---------- */
 .konkrety { display: grid; gap: 1px; background: var(--linia); margin-top: 2.5rem; max-width: 56rem; }
 .konkret {
-  background: rgba(10, 15, 22, .74);
-  backdrop-filter: blur(6px);
+  background: rgba(12, 17, 25, .88);
   display: flex;
   gap: 1.4rem;
   padding: 1.7rem;
@@ -636,13 +740,16 @@ ul, ol { list-style: none; padding: 0; }
   aspect-ratio: 1;
   width: 46%;
   position: absolute;
-  right: -.75rem; bottom: -2.5rem;
+  right: -.75rem; bottom: -2.25rem;
   border: 4px solid var(--tlo);
   box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, .5);
   border-radius: .75rem;
 }
+/* rezerwa na wystające małe zdjęcie, żeby nie wchodziło na następną sekcję */
+.efekt__zdjecia { margin-bottom: 2.5rem; }
 @media (max-width: 40rem) {
   .efekt__foto--male { position: static; width: 100%; margin-top: 1rem; border-width: 1px; }
+  .efekt__zdjecia { margin-bottom: 0; }
 }
 
 /* ---------- 06 opinie / karuzela ---------- */
@@ -884,8 +991,7 @@ ul, ol { list-style: none; padding: 0; }
 }
 
 .formularz {
-  background: rgba(16, 24, 35, .9);
-  backdrop-filter: blur(12px);
+  background: rgba(16, 24, 35, .95);
   border: 1px solid var(--linia);
   border-radius: 1rem;
   padding: clamp(1.5rem, 4vw, 2.5rem);

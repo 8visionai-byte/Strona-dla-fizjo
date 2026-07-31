@@ -74,7 +74,8 @@ const maGsap = typeof gsap !== 'undefined';
 /* ---------- płynne przewijanie (tylko desktop) ---------- */
 let lenis = null;
 if (!mniejRuchu && !dotyk && typeof Lenis !== 'undefined') {
-  lenis = new Lenis({ duration: 1.05, smoothWheel: true, wheelMultiplier: 0.95 });
+  /* krótszy czas i pełny mnożnik: dłuższe ustawienia czuć było jak opóźnienie kółka */
+  lenis = new Lenis({ duration: 0.8, smoothWheel: true, wheelMultiplier: 1 });
   const klatka = (t) => { lenis.raf(t); requestAnimationFrame(klatka); };
   requestAnimationFrame(klatka);
 }
@@ -280,6 +281,41 @@ if (!maGsap || mniejRuchu) {
           onComplete: () => { el.textContent = cel; },
         });
       },
+    });
+  });
+
+  /* etykiety sekcji: litery losują się i układają w słowo (jak we wzorcu Azurio) */
+  document.querySelectorAll('[data-scramble]').forEach((el) => {
+    const koncowy = el.textContent;
+    const znaki = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&*+=<>/';
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 92%',
+      once: true,
+      onEnter() {
+        let klatka = 0;
+        const ile = 16;
+        const id = setInterval(() => {
+          klatka++;
+          const gotowe = Math.floor((klatka / ile) * koncowy.length);
+          let s = '';
+          for (let i = 0; i < koncowy.length; i++) {
+            if (koncowy[i] === ' ' || i < gotowe) s += koncowy[i];
+            else s += znaki[Math.floor(Math.random() * znaki.length)];
+          }
+          el.textContent = s;
+          if (klatka >= ile) { el.textContent = koncowy; clearInterval(id); }
+        }, 34);
+      },
+    });
+  });
+
+  /* pływające kadry w hero: każdy jedzie z inną prędkością */
+  document.querySelectorAll('.hero__plywak').forEach((el, i) => {
+    gsap.to(el, {
+      yPercent: i === 0 ? -14 : 10,
+      ease: 'none',
+      scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true },
     });
   });
 
