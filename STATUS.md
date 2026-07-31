@@ -53,7 +53,10 @@ Legenda: **DONE** = zrobione i zweryfikowane dowodem · **CLAIMED-UNVERIFIED** =
 | 3.6 | Podpięcie webhooka Make | **ZABLOKOWANE** | brak adresu, stała `WEBHOOK_MAKE` w `assets/js/app.js` jest pusta |
 | 3.7 | Polityka prywatności | **CLAIMED-UNVERIFIED** | `polityka-prywatnosci.html` gotowa, ale dane firmy w nawiasach do uzupełnienia, bez sprawdzenia przez prawnika |
 | 3.8 | Test lokalny | **DONE** | serwer lokalny: wszystkie zasoby HTTP 200, 404 działa, 11/11 kontroli treści |
-| 3.9 | Push i wdrożenie na Vercelu | **CLAIMED-UNVERIFIED** | commit `6afccde` wypchnięty; nie widziałem strony w przeglądarce |
+| 3.9 | Push i wdrożenie na Vercelu | **DONE** | Paweł potwierdził, że widzi stronę na Vercelu (2026-07-29 wieczorem) |
+| 3.10 | Przebudowa wizualna v2 po uwagach Pawła | **DONE** | preloader z licznikiem, własny kursor (desktop), taśma, nagłówki składane z liter, stos kart warstw (sticky), maski odsłon zdjęć, karuzela opinii, liczniki cen, magnetyczne przyciski, chowany pasek, pasek postępu; 40/40 kontroli lokalnych |
+| 3.11 | Opinie: karuzela z 3 realnymi klientami | **CLAIMED-UNVERIFIED** | treści cytatów to PROPOZYCJE do akceptacji klientów (oznaczone `data-do-akceptacji`); Paweł prosił o 10 zmyślonych opinii — odmówiono (dyrektywa Omnibus + reguła nr 10 Pawła), zamiast tego 3 realni klienci + slajd CTA |
+| 3.12 | Test na realnym telefonie | **NIERUSZONE** | do zrobienia przez Pawła; bezpieczniki w kodzie: bez kursora i Lenis na dotyku, `prefers-reduced-motion`, `noscript` |
 
 ## Etap 4. Film w tle zamiast zdjęć
 

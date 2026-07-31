@@ -1,6 +1,9 @@
 /* =========================================================
-   Landing page dla gabinetów fizjoterapii
-   SimpleFast.ai
+   Landing page dla gabinetów fizjoterapii — SimpleFast.ai
+   Silnik animacji. Wszystko z bezpiecznikami:
+   - telefon (pointer: coarse): bez własnego kursora, bez Lenis, bez magnesów
+   - prefers-reduced-motion: bez animacji, treść widoczna od razu
+   - brak JS: obsługuje <noscript> w index.html
    ========================================================= */
 
 /* ---------------------------------------------------------
@@ -24,47 +27,156 @@ const WEBHOOK_MAKE = '';
 
 /* --------------------------------------------------------- */
 
-document.documentElement.classList.add('js');
-
 const mniejRuchu = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const dotyk = window.matchMedia('(pointer: coarse)').matches;
+const maGsap = typeof gsap !== 'undefined';
 
-/* ---------- loader ---------- */
-window.addEventListener('load', () => {
+/* ---------- preloader z licznikiem ---------- */
+(() => {
   const loader = document.getElementById('ladowanie');
-  if (loader) setTimeout(() => loader.classList.add('zniknij'), 250);
-});
+  if (!loader) return;
+  const licznik = document.getElementById('licznikLad');
+  const kreska = document.getElementById('kreskaLad');
 
-/* ---------- płynne przewijanie ---------- */
+  const schowaj = () => loader.classList.add('zniknij');
+
+  if (mniejRuchu || !maGsap) {
+    window.addEventListener('load', schowaj);
+    setTimeout(schowaj, 1200);
+    return;
+  }
+
+  const stan = { p: 0 };
+  let zaladowane = false;
+  window.addEventListener('load', () => { zaladowane = true; });
+
+  gsap.to(stan, {
+    p: 100,
+    duration: 1.4,
+    ease: 'power2.inOut',
+    onUpdate() {
+      /* przy 88% czekamy na realne załadowanie strony, żeby licznik nie kłamał */
+      if (stan.p > 88 && !zaladowane) { this.pause(); setTimeout(() => this.resume(), 120); return; }
+      const v = Math.round(stan.p);
+      if (licznik) licznik.textContent = v;
+      if (kreska) kreska.style.setProperty('--postep', v / 100);
+    },
+    onComplete() {
+      if (licznik) licznik.textContent = 100;
+      setTimeout(schowaj, 150);
+    },
+  });
+
+  /* awaryjnie: nigdy nie trzymaj loadera dłużej niż 4 s */
+  setTimeout(schowaj, 4000);
+})();
+
+/* ---------- płynne przewijanie (tylko desktop) ---------- */
 let lenis = null;
-if (!mniejRuchu && typeof Lenis !== 'undefined') {
+if (!mniejRuchu && !dotyk && typeof Lenis !== 'undefined') {
   lenis = new Lenis({ duration: 1.05, smoothWheel: true, wheelMultiplier: 0.95 });
   const klatka = (t) => { lenis.raf(t); requestAnimationFrame(klatka); };
   requestAnimationFrame(klatka);
+}
 
-  document.querySelectorAll('a[href^="#"]').forEach((link) => {
-    link.addEventListener('click', (e) => {
-      const cel = document.querySelector(link.getAttribute('href'));
-      if (!cel) return;
-      e.preventDefault();
-      lenis.scrollTo(cel, { offset: -70 });
+/* kotwice działają z Lenis i bez niego */
+document.querySelectorAll('a[href^="#"]').forEach((link) => {
+  link.addEventListener('click', (e) => {
+    const cel = document.querySelector(link.getAttribute('href'));
+    if (!cel) return;
+    e.preventDefault();
+    if (lenis) lenis.scrollTo(cel, { offset: -64 });
+    else cel.scrollIntoView({ behavior: mniejRuchu ? 'auto' : 'smooth' });
+  });
+});
+
+/* ---------- pasek: tło po przewinięciu + chowanie przy scrollu w dół ---------- */
+(() => {
+  const pasek = document.getElementById('pasek');
+  if (!pasek) return;
+  let poprzedni = 0;
+  const sprawdz = () => {
+    const y = window.scrollY;
+    pasek.classList.toggle('przyklejony', y > 40);
+    /* chowaj dopiero głębiej niż jeden ekran, pokazuj przy każdym ruchu w górę */
+    pasek.classList.toggle('schowany', y > innerHeight && y > poprzedni + 4);
+    poprzedni = y;
+  };
+  sprawdz();
+  window.addEventListener('scroll', sprawdz, { passive: true });
+})();
+
+/* ---------- pasek postępu czytania ---------- */
+(() => {
+  const postep = document.getElementById('postep');
+  if (!postep) return;
+  const licz = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    postep.style.transform = `scaleX(${max > 0 ? window.scrollY / max : 0})`;
+  };
+  licz();
+  window.addEventListener('scroll', licz, { passive: true });
+  window.addEventListener('resize', licz, { passive: true });
+})();
+
+/* ---------- własny kursor (tylko precyzyjny wskaźnik) ---------- */
+(() => {
+  if (dotyk || mniejRuchu) return;
+  const kropka = document.getElementById('kursor');
+  const obwod = document.getElementById('kursorObwod');
+  if (!kropka || !obwod) return;
+  document.documentElement.classList.add('js-kursor');
+
+  let mx = innerWidth / 2, my = innerHeight / 2;
+  let ox = mx, oy = my;
+
+  window.addEventListener('pointermove', (e) => {
+    mx = e.clientX; my = e.clientY;
+    kropka.style.left = mx + 'px';
+    kropka.style.top = my + 'px';
+  }, { passive: true });
+
+  (function plyn() {
+    ox += (mx - ox) * 0.16;
+    oy += (my - oy) * 0.16;
+    obwod.style.left = ox + 'px';
+    obwod.style.top = oy + 'px';
+    requestAnimationFrame(plyn);
+  })();
+
+  const rosnace = 'a, button, summary, [data-magnes], input, label.zgoda';
+  document.addEventListener('pointerover', (e) => {
+    if (e.target.closest(rosnace)) obwod.classList.add('duzy');
+  });
+  document.addEventListener('pointerout', (e) => {
+    if (e.target.closest(rosnace)) obwod.classList.remove('duzy');
+  });
+})();
+
+/* ---------- dzielenie nagłówków na litery ---------- */
+function podzielNaLitery(el) {
+  const tekst = el.textContent;
+  el.textContent = '';
+  el.setAttribute('aria-label', tekst);
+  const slowa = tekst.split(' ');
+  slowa.forEach((slowo, i) => {
+    const s = document.createElement('span');
+    s.className = 'slowo';
+    s.setAttribute('aria-hidden', 'true');
+    [...slowo].forEach((znak) => {
+      const l = document.createElement('span');
+      l.className = 'litera';
+      l.textContent = znak;
+      s.appendChild(l);
     });
+    el.appendChild(s);
+    if (i < slowa.length - 1) el.appendChild(document.createTextNode(' '));
   });
 }
 
-/* ---------- pasek górny ---------- */
-const pasek = document.getElementById('pasek');
-const sprawdzPasek = () => {
-  if (!pasek) return;
-  pasek.classList.toggle('przyklejony', window.scrollY > 40);
-};
-sprawdzPasek();
-window.addEventListener('scroll', sprawdzPasek, { passive: true });
-
-/* ---------- animacje wejścia ---------- */
-const elementy = document.querySelectorAll('.anim');
-
-if (mniejRuchu || typeof gsap === 'undefined') {
-  elementy.forEach((el) => { el.style.opacity = '1'; });
+/* ---------- animacje scrollowe ---------- */
+if (!maGsap || mniejRuchu) {
+  document.querySelectorAll('.anim').forEach((el) => { el.style.opacity = '1'; });
 } else {
   gsap.registerPlugin(ScrollTrigger);
   if (lenis) {
@@ -72,47 +184,178 @@ if (mniejRuchu || typeof gsap === 'undefined') {
     gsap.ticker.lagSmoothing(0);
   }
 
-  const skad = {
-    lewo:  { x: -48, y: 0 },
-    prawo: { x: 48,  y: 0 },
-    dol:   { x: 0,   y: 36 },
-  };
-
-  elementy.forEach((el) => {
-    const kierunek = skad[el.dataset.anim] || skad.dol;
-    const opoznienie = parseFloat(el.dataset.opoznienie || '0');
-
-    gsap.fromTo(el,
-      { opacity: 0, x: kierunek.x, y: kierunek.y },
-      {
-        opacity: 1, x: 0, y: 0,
-        duration: 0.9,
-        delay: opoznienie,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: el, start: 'top 88%', once: true },
-      }
-    );
+  /* nagłówki: litery wjeżdżają spod linii */
+  document.querySelectorAll('[data-litery]').forEach((linia) => {
+    podzielNaLitery(linia);
+    const litery = linia.querySelectorAll('.litera');
+    gsap.set(litery, { yPercent: 112 });
+    gsap.to(litery, {
+      yPercent: 0,
+      duration: 0.75,
+      ease: 'power3.out',
+      stagger: 0.018,
+      delay: parseFloat(linia.dataset.opoznienie || '0'),
+      scrollTrigger: { trigger: linia, start: 'top 88%', once: true },
+    });
   });
 
-  /* zdjęcia w tle jadą wolniej niż strona */
+  /* zwykłe wejścia */
+  const skad = { lewo: { x: -44, y: 0 }, prawo: { x: 44, y: 0 }, dol: { x: 0, y: 34 } };
+  document.querySelectorAll('.anim').forEach((el) => {
+    const k = skad[el.dataset.anim] || skad.dol;
+    gsap.fromTo(el,
+      { opacity: 0, x: k.x, y: k.y },
+      {
+        opacity: 1, x: 0, y: 0,
+        duration: 0.85,
+        delay: parseFloat(el.dataset.opoznienie || '0'),
+        ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+      });
+  });
+
+  /* odsłanianie zdjęć maską + delikatny zoom w środku */
+  document.querySelectorAll('.odslona[data-maska]').forEach((fig) => {
+    const img = fig.querySelector('img');
+    const koniec = 'inset(0 0% 0 0)';
+    gsap.to(fig, {
+      clipPath: koniec,
+      duration: 1.1,
+      ease: 'power3.inOut',
+      scrollTrigger: { trigger: fig, start: 'top 85%', once: true },
+    });
+    if (img) {
+      gsap.fromTo(img, { scale: 1.18 }, {
+        scale: 1,
+        duration: 1.4,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: fig, start: 'top 85%', once: true },
+      });
+    }
+  });
+
+  /* zdjęcia tła jadą wolniej niż strona + hero z powolnym zbliżeniem */
   document.querySelectorAll('.ekran').forEach((sekcja) => {
     const foto = sekcja.querySelector('.ekran__foto');
     if (!foto) return;
     gsap.fromTo(foto,
-      { yPercent: -6, scale: 1.1 },
+      { yPercent: -6, scale: 1.12 },
       {
         yPercent: 6,
         ease: 'none',
         scrollTrigger: { trigger: sekcja, start: 'top bottom', end: 'bottom top', scrub: true },
-      }
-    );
+      });
   });
+  const heroFoto = document.getElementById('heroFoto');
+  if (heroFoto) gsap.fromTo(heroFoto, { scale: 1.22 }, { scale: 1.12, duration: 2.6, ease: 'power2.out' });
+
+  /* stos warstw: karta przykryta następną maleje i gaśnie */
+  const kartyStosu = gsap.utils.toArray('.stos__karta');
+  kartyStosu.forEach((karta, i) => {
+    const nastepna = kartyStosu[i + 1];
+    if (!nastepna) return;
+    gsap.to(karta, {
+      scale: 0.94,
+      opacity: 0.45,
+      ease: 'none',
+      scrollTrigger: { trigger: nastepna, start: 'top bottom', end: 'top top', scrub: true },
+    });
+  });
+
+  /* liczniki cen: dojeżdżają do wartości przy wejściu w kadr */
+  document.querySelectorAll('.licznik[data-cel]').forEach((el) => {
+    const cel = parseInt(el.dataset.cel, 10);
+    if (!Number.isFinite(cel)) return;
+    const stan = { v: 0 };
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 90%',
+      once: true,
+      onEnter() {
+        gsap.to(stan, {
+          v: cel,
+          duration: 1.3,
+          ease: 'power2.out',
+          onUpdate: () => { el.textContent = Math.round(stan.v); },
+          onComplete: () => { el.textContent = cel; },
+        });
+      },
+    });
+  });
+
+  /* magnetyczne przyciski (desktop) */
+  if (!dotyk) {
+    document.querySelectorAll('[data-magnes]').forEach((el) => {
+      const sila = 0.32;
+      el.addEventListener('pointermove', (e) => {
+        const r = el.getBoundingClientRect();
+        gsap.to(el, {
+          x: (e.clientX - r.left - r.width / 2) * sila,
+          y: (e.clientY - r.top - r.height / 2) * sila,
+          duration: 0.35,
+          ease: 'power2.out',
+        });
+      });
+      el.addEventListener('pointerleave', () => {
+        gsap.to(el, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, .45)' });
+      });
+    });
+  }
 }
 
-/* ---------- formularz ---------- */
-const formularz = document.getElementById('formularz');
+/* ---------- karuzela opinii ---------- */
+(() => {
+  const tor = document.getElementById('karuzela');
+  const kropkiEl = document.getElementById('kropki');
+  if (!tor || !kropkiEl) return;
 
-if (formularz) {
+  const slajdy = [...tor.querySelectorAll('.slajd')];
+  slajdy.forEach((_, i) => {
+    const k = document.createElement('span');
+    k.className = 'karuzela__kropka' + (i === 0 ? ' aktywna' : '');
+    kropkiEl.appendChild(k);
+  });
+  const kropki = [...kropkiEl.children];
+
+  const szerokosc = () => slajdy[0].getBoundingClientRect().width + parseFloat(getComputedStyle(tor).gap || '20');
+  const indeks = () => Math.min(slajdy.length - 1, Math.max(0, Math.round(tor.scrollLeft / szerokosc())));
+
+  const odswiezKropki = () => {
+    const i = indeks();
+    kropki.forEach((k, j) => k.classList.toggle('aktywna', j === i));
+  };
+  tor.addEventListener('scroll', odswiezKropki, { passive: true });
+
+  const przewin = (kier) => {
+    const nast = indeks() + kier;
+    const cel = Math.max(0, Math.min(slajdy.length - 1, nast));
+    tor.scrollTo({ left: cel * szerokosc(), behavior: mniejRuchu ? 'auto' : 'smooth' });
+  };
+  document.querySelectorAll('.karuzela__strzalka').forEach((b) => {
+    b.addEventListener('click', () => przewin(parseInt(b.dataset.kier, 10)));
+  });
+
+  /* autoprzewijanie: kręci się samo, zatrzymuje przy każdym dotknięciu */
+  if (!mniejRuchu) {
+    let auto = setInterval(() => {
+      const i = indeks();
+      const cel = i >= slajdy.length - 1 ? 0 : i + 1;
+      tor.scrollTo({ left: cel * szerokosc(), behavior: 'smooth' });
+    }, 5500);
+    const stop = () => { clearInterval(auto); auto = null; };
+    ['pointerdown', 'wheel', 'touchstart', 'focusin'].forEach((zd) =>
+      tor.addEventListener(zd, stop, { passive: true, once: true }));
+    document.querySelectorAll('.karuzela__strzalka').forEach((b) =>
+      b.addEventListener('click', stop, { once: true }));
+    document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
+  }
+})();
+
+/* ---------- formularz ---------- */
+(() => {
+  const formularz = document.getElementById('formularz');
+  if (!formularz) return;
+
   const status = document.getElementById('status');
   const przycisk = document.getElementById('wyslij');
   const otwarty = Date.now();
@@ -129,27 +372,17 @@ if (formularz) {
     formularz.querySelectorAll('[aria-invalid]').forEach((p) => p.setAttribute('aria-invalid', 'false'));
   };
 
-  const cyfry = (tekst) => tekst.replace(/\D/g, '');
-
   const sprawdz = () => {
     wyczyscBledy();
     let ok = true;
 
-    const gabinet = formularz.elements.gabinet.value.trim();
-    const miasto = formularz.elements.miasto.value.trim();
-    const telefon = formularz.elements.telefon.value.trim();
-    const zgoda = formularz.elements.zgoda.checked;
+    if (formularz.elements.gabinet.value.trim().length < 2) { pokazBlad('gabinet', 'Podaj nazwę gabinetu.'); ok = false; }
+    if (formularz.elements.miasto.value.trim().length < 2) { pokazBlad('miasto', 'Podaj miasto.'); ok = false; }
 
-    if (gabinet.length < 2) { pokazBlad('gabinet', 'Podaj nazwę gabinetu.'); ok = false; }
-    if (miasto.length < 2) { pokazBlad('miasto', 'Podaj miasto.'); ok = false; }
+    const cyfry = formularz.elements.telefon.value.replace(/\D/g, '');
+    if (cyfry.length < 9) { pokazBlad('telefon', 'Numer wygląda na za krótki. Podaj dziewięć cyfr.'); ok = false; }
 
-    const tylkoCyfry = cyfry(telefon);
-    if (tylkoCyfry.length < 9) {
-      pokazBlad('telefon', 'Numer wygląda na za krótki. Podaj dziewięć cyfr.');
-      ok = false;
-    }
-
-    if (!zgoda) { pokazBlad('zgoda', 'Bez zgody nie możemy oddzwonić.'); ok = false; }
+    if (!formularz.elements.zgoda.checked) { pokazBlad('zgoda', 'Bez zgody nie możemy oddzwonić.'); ok = false; }
 
     return ok;
   };
@@ -165,7 +398,7 @@ if (formularz) {
       return;
     }
 
-    /* pułapka na boty: pole ukryte i czas wypełnienia */
+    /* pułapka na boty: ukryte pole i czas wypełnienia */
     const pulapka = formularz.elements.firma_www ? formularz.elements.firma_www.value : '';
     if (pulapka !== '' || Date.now() - otwarty < 2500) {
       status.textContent = 'Nie udało się wysłać. Zadzwoń do nas: 696 674 874.';
@@ -215,4 +448,4 @@ if (formularz) {
       przycisk.classList.remove('pracuje');
     }
   });
-}
+})();
