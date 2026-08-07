@@ -110,6 +110,23 @@ Struktura sekcji `.ekran__tlo` jest już przygotowana pod podmianę `<img>` na `
 Po każdej zmianie tej listy trzeba w Make kliknąć **Redetermine data structure**,
 inaczej nowe pole wyrenderuje się w mailu jako puste.
 
+### Poprawka tego samego dnia: cache przeglądarki blokował formularz
+
+Paweł zgłosił, że formularz na żywej stronie mówi „nie jest jeszcze podpięty", mimo że
+serwer oddawał plik z wpiętym webhookiem (sprawdzone nagłówkami: `x-vercel-cache: HIT`,
+`age: 2007`, a w treści pliku pełny adres `hook.eu2.make.com`). Przyczyną była stara
+wersja `app.js` w pamięci przeglądarki, nie kod.
+
+Rozwiązanie: `assets/css/style.css` i `assets/js/app.js` ładowane są teraz z parametrem
+wersji `?v=20260807b` w `index.html` i `polityka-prywatnosci.html`. **Po każdej zmianie
+w tych dwóch plikach trzeba podnieść tę datę we wszystkich trzech miejscach**, inaczej
+użytkownicy z otwartą kartą zostaną na starej wersji. Komunikat bezpiecznika prosi teraz
+najpierw o odświeżenie strony, a dopiero potem każe dzwonić.
+
+Dowód: 8/8 kontroli na żywym adresie, w tym symulacja wysyłki formularza payloadem
+zbudowanym z pliku **pobranego z serwera** pod adresem `app.js?v=20260807b`:
+webhook odpowiedział `HTTP 200 Accepted` w 239 ms.
+
 ## Dane potwierdzone przez Pawła (2026-07-29)
 
 - Telefon na stronie: **+48 696 674 874**
