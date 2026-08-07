@@ -1,6 +1,6 @@
 # STATUS — Landing page dla fizjoterapeutów (LP-1)
 
-Ostatnia aktualizacja: 2026-08-07
+Ostatnia aktualizacja: 2026-08-08
 Repo lokalne: `c:\Users\Paweł Pieloch\CLAUDE CODE\landing page dla fizjo`
 Repo zdalne: `https://github.com/8visionai-byte/Strona-dla-fizjo.git`
 Hosting docelowy: Vercel, wdrożenie z gałęzi `main`
@@ -105,8 +105,9 @@ Struktura sekcji `.ekran__tlo` jest już przygotowana pod podmianę `<img>` na `
 | `index.html` | treść zgody przy checkboxie rozszerzona o cel i adres e-mail administratora, spójna 1:1 z `TRESC_ZGODY`; em-dash usunięty z JSON-LD |
 | `polityka-prywatnosci.html` | przepisana od zera na podstawie `simplefast.ai/polityka-prywatnosci`; usunięte 3 ramki „do uzupełnienia" i placeholdery `[NAZWA]`, `[ADRES]`, `[NIP]`; dołożona sekcja o Google Fonts i jsDelivr (strona faktycznie je ładuje, więc IP użytkownika wychodzi na zewnątrz); pominięta sekcja SFAI o czacie z Agentem AI, bo na tym landingu czatu nie ma |
 
-**Struktura zgłoszenia wysyłanego do Make (kontrakt, 8 pól):**
-`gabinet`, `miasto`, `telefon`, `zgoda`, `zgoda_tresc`, `zrodlo`, `strona`, `czas`.
+**Struktura zgłoszenia wysyłanego do Make (kontrakt, 10 pól, stan na 2026-08-08):**
+`gabinet`, `miasto`, `telefon`, `telefon_link`, `zgoda`, `zgoda_tresc`, `zrodlo`,
+`strona`, `czas`, `czas_pl`.
 Po każdej zmianie tej listy trzeba w Make kliknąć **Redetermine data structure**,
 inaczej nowe pole wyrenderuje się w mailu jako puste.
 
@@ -140,3 +141,25 @@ webhook odpowiedział `HTTP 200 Accepted` w 239 ms.
 1. Podłącz repo `Strona-dla-fizjo` do Vercela (import z GitHuba, gałąź `main`).
 2. Wygeneruj KLIP 1 wg `docs/PROMPTY-WIDEO.md` i powiedz, czy pasuje.
 3. Podaj poprawne nazwy i adresy stron klientów do sekcji z realizacjami.
+
+## Etap 5. Szablon maila z leadem (2026-08-08)
+
+| # | Zadanie | Stan | Dowód |
+|---|---|---|---|
+| 5.1 | Mail z Make dociera na skrzynkę | **DONE** | Paweł pokazał zrzut: „Nowy Lead z Fizjo", treść z gabinetem, miastem i telefonem |
+| 5.2 | Ładny szablon HTML maila | **DONE** | `docs/MAIL-MAKE-SZABLON.md` (Subject + Content do wklejenia), podgląd `docs/podglad-maila.html`; 24/24 kontrole, w tym dowód że podgląd to ten sam kod co szablon po podstawieniu danych |
+| 5.3 | Pola `telefon_link` i `czas_pl` | **DONE** | dodane w `assets/js/app.js`, dzięki czemu mail nie wymaga żadnej formuły w Make |
+| 5.4 | Wklejenie szablonu w Make | **NIERUSZONE** | do zrobienia przez Pawła wg instrukcji w `docs/MAIL-MAKE-SZABLON.md` |
+
+### PILNE: literówka w adresie odbiorcy w Make
+
+Na zrzucie ekranu z modułu „Send an Email", w polu **To → Email address 1**, jest
+`8visionai@gmial.com` zamiast `8visionai@gmail.com`. `gmial.com` to istniejąca domena
+podszywająca się pod Gmaila. Dopóki wpis zostaje, dane leadów mogą wychodzić pod obcy
+adres. Do poprawienia przez Pawła przed kampanią.
+
+### Dlaczego treść maila skleiła się w jedną linię
+
+Content Type w module maila jest ustawiony na HTML, a treść była wpisana zwykłymi
+przejściami do nowej linii. HTML ignoruje znaki nowej linii, więc wszystko wyszło
+jednym ciągiem. Nowy szablon jest pełnym HTML-em i tego problemu nie ma.

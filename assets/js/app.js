@@ -479,6 +479,26 @@ if (!maGsap || mniejRuchu) {
     przycisk.classList.add('pracuje');
     przycisk.querySelector('.btn__tekst').textContent = 'Wysyłam';
 
+    const teraz = new Date();
+    const telefonSurowy = formularz.elements.telefon.value.trim();
+
+    /*
+      Numer w postaci nadającej się prosto do linku "tel:" w mailu:
+      same cyfry i ewentualny plus. Liczymy to tutaj, żeby w Make nie trzeba
+      było pisać żadnej formuły.
+    */
+    const telefonLink = telefonSurowy.replace(/[^\d+]/g, '');
+
+    /*
+      Czas po polsku, w polskiej strefie, gotowy do wklejenia w mail.
+      Pole "czas" (ISO) zostaje osobno, bo nadaje się do sortowania i archiwum.
+    */
+    const czasPl = teraz.toLocaleString('pl-PL', {
+      timeZone: 'Europe/Warsaw',
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+
     try {
       const odpowiedz = await fetch(WEBHOOK_MAKE, {
         method: 'POST',
@@ -488,16 +508,20 @@ if (!maGsap || mniejRuchu) {
           Make uczy się tych pól przy pierwszym zgłoszeniu i mapuje je w mailu.
           Dołożenie albo przemianowanie pola wymaga "Redetermine data structure"
           w module webhooka, inaczej nowe pole w mailu będzie puste.
+
+          Pełna lista pól i gotowy szablon maila: docs/MAIL-MAKE-SZABLON.md
         */
         body: JSON.stringify({
           gabinet: formularz.elements.gabinet.value.trim(),
           miasto: formularz.elements.miasto.value.trim(),
-          telefon: formularz.elements.telefon.value.trim(),
+          telefon: telefonSurowy,
+          telefon_link: telefonLink,
           zgoda: 'tak',
           zgoda_tresc: TRESC_ZGODY,
           zrodlo: 'landing fizjoterapeuci',
           strona: window.location.href,
-          czas: new Date().toISOString(),
+          czas: teraz.toISOString(),
+          czas_pl: czasPl,
         }),
       });
 
