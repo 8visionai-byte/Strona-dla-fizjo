@@ -1,6 +1,6 @@
 # STATUS — Landing page dla fizjoterapeutów (LP-1)
 
-Ostatnia aktualizacja: 2026-07-29
+Ostatnia aktualizacja: 2026-08-07
 Repo lokalne: `c:\Users\Paweł Pieloch\CLAUDE CODE\landing page dla fizjo`
 Repo zdalne: `https://github.com/8visionai-byte/Strona-dla-fizjo.git`
 Hosting docelowy: Vercel, wdrożenie z gałęzi `main`
@@ -50,8 +50,8 @@ Legenda: **DONE** = zrobione i zweryfikowane dowodem · **CLAIMED-UNVERIFIED** =
 | 3.3 | Animacje wejścia sterowane scrollem | **DONE** | `assets/js/app.js`, GSAP + ScrollTrigger + Lenis |
 | 3.4 | Obsługa braku JS i preferencji ograniczenia ruchu | **DONE** | `<noscript>` w `index.html`, `prefers-reduced-motion` w CSS |
 | 3.5 | Formularz: walidacja, pułapka na boty, zgoda RODO | **DONE** | `assets/js/app.js` |
-| 3.6 | Podpięcie webhooka Make | **ZABLOKOWANE** | brak adresu, stała `WEBHOOK_MAKE` w `assets/js/app.js` jest pusta |
-| 3.7 | Polityka prywatności | **CLAIMED-UNVERIFIED** | `polityka-prywatnosci.html` gotowa, ale dane firmy w nawiasach do uzupełnienia, bez sprawdzenia przez prawnika |
+| 3.6 | Podpięcie webhooka Make | **DONE** | adres wpięty w `assets/js/app.js`, testowy POST w finalnej strukturze: `HTTP 200 Accepted`, 927 ms, 8 pól. Do potwierdzenia przez Pawła: czy przyszedł mail |
+| 3.7 | Polityka prywatności | **DONE** | `polityka-prywatnosci.html` przepisana z `simplefast.ai/polityka-prywatnosci`, zero placeholderów, 14/14 kontroli treści. Nie sprawdzona przez prawnika (jak wersja na SFAI) |
 | 3.8 | Test lokalny | **DONE** | serwer lokalny: wszystkie zasoby HTTP 200, 404 działa, 11/11 kontroli treści |
 | 3.9 | Push i wdrożenie na Vercelu | **DONE** | Paweł potwierdził, że widzi stronę na Vercelu (2026-07-29 wieczorem) |
 | 3.10 | Przebudowa wizualna v2 po uwagach Pawła | **DONE** | preloader z licznikiem, własny kursor (desktop), taśma, nagłówki składane z liter, stos kart warstw (sticky), maski odsłon zdjęć, karuzela opinii, liczniki cen, magnetyczne przyciski, chowany pasek, pasek postępu; 40/40 kontroli lokalnych |
@@ -85,14 +85,30 @@ Struktura sekcji `.ekran__tlo` jest już przygotowana pod podmianę `<img>` na `
    „Przystań Jurgen.pl", „Fischtel Gebrickshaus". Wyglądają na przekręcone przez
    rozpoznawanie mowy. **Nie wpiszę ich na stronę, dopóki nie dostanę poprawnej pisowni
    i adresów URL.** Zła nazwa klienta na stronie sprzedażowej to wstyd, a nie literówka.
-2. **Treść opinii.** Paweł zapowiedział, że poda je później. Do tego czasu sekcja zostaje
-   z oznaczonymi pustymi miejscami, bez zmyślonych cytatów.
+2. ~~**Treść opinii.**~~ ZAMKNIĘTE 2026-07-29, Paweł dostarczył 10 własnych opinii.
 3. **Zgoda klientów na pokazanie ich stron** w sekcji realizacji.
-4. **Konto Make i adres webhooka** do formularza. Uwaga: Marcin w rozmowie 2026-07-29
-   mówił, że jest o krok od wyłączenia Make. Jeśli go wyłączy, formularz przestanie
-   dowozić leady.
-5. **Dokumenty RODO:** administrator danych, treść zgody przy formularzu, polityka
-   prywatności. Warunek konieczny przed wysyłką kampanii SMS.
+4. ~~**Konto Make i adres webhooka**~~ ZAMKNIĘTE 2026-08-07. Webhook `eu2.make.com`
+   wpięty, testowy POST przyjęty (HTTP 200 Accepted). Uwaga bez zmian: Marcin mówił
+   2026-07-29, że jest o krok od wyłączenia Make. Jeśli go wyłączy, formularz przestanie
+   dowozić leady i trzeba przepiąć adres w stałej `WEBHOOK_MAKE`.
+5. ~~**Dokumenty RODO**~~ ZAMKNIĘTE 2026-08-07 co do treści: polityka przepisana
+   z simplefast.ai, administrator (SimpleFast.ai, kontakt@simplefast.ai, +48 696 674 874),
+   treść zgody przy formularzu spójna 1:1 z tym, co wysyłamy do Make jako dowód zgody.
+   **Nadal otwarte:** decyzja, czy w polityce ma być pełna nazwa prawna firmy i NIP
+   (SFAI ich nie podaje, więc nie dopisałem ich sam), oraz sprawdzenie przez prawnika.
+
+## Zmiana z 2026-08-07: webhook Make + polityka prywatności
+
+| Warstwa | Co zmienione |
+|---|---|
+| `assets/js/app.js` | `WEBHOOK_MAKE` wpięty; nowa stała `TRESC_ZGODY`; payload rozszerzony o `zgoda_tresc`; `zgoda` wysyłane jako `"tak"` zamiast `true` (w mailu czyta się po polsku); komentarz o filtrach w Make poprawiony, bo poprzedni kazał filtrować po polu `firma_www`, którego w payloadzie nigdy nie było |
+| `index.html` | treść zgody przy checkboxie rozszerzona o cel i adres e-mail administratora, spójna 1:1 z `TRESC_ZGODY`; em-dash usunięty z JSON-LD |
+| `polityka-prywatnosci.html` | przepisana od zera na podstawie `simplefast.ai/polityka-prywatnosci`; usunięte 3 ramki „do uzupełnienia" i placeholdery `[NAZWA]`, `[ADRES]`, `[NIP]`; dołożona sekcja o Google Fonts i jsDelivr (strona faktycznie je ładuje, więc IP użytkownika wychodzi na zewnątrz); pominięta sekcja SFAI o czacie z Agentem AI, bo na tym landingu czatu nie ma |
+
+**Struktura zgłoszenia wysyłanego do Make (kontrakt, 8 pól):**
+`gabinet`, `miasto`, `telefon`, `zgoda`, `zgoda_tresc`, `zrodlo`, `strona`, `czas`.
+Po każdej zmianie tej listy trzeba w Make kliknąć **Redetermine data structure**,
+inaczej nowe pole wyrenderuje się w mailu jako puste.
 
 ## Dane potwierdzone przez Pawła (2026-07-29)
 

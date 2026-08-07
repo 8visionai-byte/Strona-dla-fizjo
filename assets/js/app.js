@@ -11,19 +11,34 @@
    --------------------------------------------------------- */
 
 /*
-  Adres webhooka z Make.com. Skopiuj go z modułu "Custom webhook"
-  i wklej między apostrofy poniżej.
+  Adres webhooka z Make.com (moduł "Custom webhook").
 
-  UWAGA, PRZECZYTAJ ZANIM WKLEISZ:
+  UWAGA:
   Ten adres jest widoczny dla każdego, kto otworzy kod strony w przeglądarce.
   Tak działa każdy formularz wysyłany z przeglądarki i nie da się tego ukryć.
-  Dlatego w scenariuszu Make koniecznie ustaw:
-    1. filtr odrzucający zgłoszenia z pustym polem "gabinet" albo "telefon",
-    2. filtr odrzucający zgłoszenia, w których pole "firma_www" NIE jest puste
-       (to pułapka na boty, prawdziwy człowiek jej nie wypełni),
-    3. limit operacji w Make, żeby ewentualny spam nie wyczerpał pakietu.
+  Pułapka na boty (ukryte pole "firma_www") działa TYLKO w przeglądarce: skrypt
+  blokuje wysyłkę, więc wypełniona pułapka nigdy nie dojdzie do Make. Bot, który
+  strzela POST-em prosto w webhook, w ogóle omija ten skrypt. Dlatego zabezpieczenie
+  po stronie Make musi opierać się na tym, co faktycznie przychodzi w zgłoszeniu:
+    1. filtr odrzucający zgłoszenia z pustym "gabinet", "miasto" albo "telefon",
+    2. filtr odrzucający "telefon" z liczbą cyfr inną niż 9-11,
+    3. filtr odrzucający zgłoszenia, w których "zrodlo" nie równa się
+       dokładnie "landing fizjoterapeuci",
+    4. limit operacji w Make, żeby ewentualny spam nie wyczerpał pakietu.
+
+  Struktura wysyłanego JSON-a jest niżej w tym pliku (sekcja formularza).
+  Po każdej zmianie pól w tym payloadzie trzeba w Make kliknąć
+  "Redetermine data structure", inaczej nowe pole wyrenderuje się w mailu jako PUSTE.
 */
-const WEBHOOK_MAKE = '';
+const WEBHOOK_MAKE = 'https://hook.eu2.make.com/3kqjqio9vy89e6i9f4yil6uasamy86ap';
+
+/*
+  Dokładna treść zgody spod checkboxa w index.html.
+  Wysyłamy ją razem ze zgłoszeniem jako dowód, na co dokładnie zgodził się
+  zgłaszający. Gdy zmienisz tekst zgody w index.html, zmień go TAKŻE tutaj,
+  inaczej dowód przestanie się zgadzać z tym, co zobaczył człowiek.
+*/
+const TRESC_ZGODY = 'Zgadzam się na kontakt telefoniczny w sprawie mojego zapytania i na przedstawienie oferty. Administratorem danych jest SimpleFast.ai, kontakt@simplefast.ai. Szczegóły w polityce prywatności.';
 
 /* --------------------------------------------------------- */
 
@@ -463,11 +478,18 @@ if (!maGsap || mniejRuchu) {
       const odpowiedz = await fetch(WEBHOOK_MAKE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        /*
+          STRUKTURA ZGŁOSZENIA — to jest kontrakt z Make.
+          Make uczy się tych pól przy pierwszym zgłoszeniu i mapuje je w mailu.
+          Dołożenie albo przemianowanie pola wymaga "Redetermine data structure"
+          w module webhooka, inaczej nowe pole w mailu będzie puste.
+        */
         body: JSON.stringify({
           gabinet: formularz.elements.gabinet.value.trim(),
           miasto: formularz.elements.miasto.value.trim(),
           telefon: formularz.elements.telefon.value.trim(),
-          zgoda: true,
+          zgoda: 'tak',
+          zgoda_tresc: TRESC_ZGODY,
           zrodlo: 'landing fizjoterapeuci',
           strona: window.location.href,
           czas: new Date().toISOString(),
