@@ -18,7 +18,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <link rel="preload" as="image" href="assets/img/foto-19.webp" fetchpriority="high">
-<link rel="stylesheet" href="assets/css/style.css">
+<!--
+  ?v=... to numer wersji plików. Przeglądarka traktuje inny adres jak inny plik,
+  więc po każdej zmianie w assets/css/style.css albo assets/js/app.js
+  PODNIEŚ TĘ DATĘ we wszystkich miejscach (index.html i polityka-prywatnosci.html).
+  Bez tego użytkownik z otwartą kartą dalej używa starej wersji po wdrożeniu.
+-->
+<link rel="stylesheet" href="assets/css/style.css?v=20260807b">
 
 <!-- Ustawia klasę zanim przeglądarka cokolwiek narysuje, żeby treść nie mrugnęła przed animacją. -->
 <script>document.documentElement.classList.add('js');</script>
@@ -749,6 +755,6 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="assets/js/app.js" defer></script>
+<script src="assets/js/app.js?v=20260807b" defer></script>
 </body>
 </html>

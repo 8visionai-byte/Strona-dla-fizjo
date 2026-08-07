@@ -463,10 +463,15 @@ if (!maGsap || mniejRuchu) {
       return;
     }
 
+    /*
+      Bezpiecznik. Od 2026-08-07 WEBHOOK_MAKE jest wypełniony, więc jedyny realny
+      powód zobaczenia tego komunikatu to stara wersja pliku w pamięci przeglądarki.
+      Dlatego komunikat prosi o odświeżenie, zanim każe dzwonić.
+    */
     if (!WEBHOOK_MAKE) {
-      status.textContent = 'Formularz nie jest jeszcze podpięty. Zadzwoń: 696 674 874.';
+      status.textContent = 'Odśwież stronę (Ctrl+Shift+R) i spróbuj jeszcze raz. Jeśli to nie pomoże, zadzwoń: 696 674 874.';
       status.classList.add('zle');
-      console.warn('[formularz] Brak adresu webhooka. Uzupełnij stałą WEBHOOK_MAKE w assets/js/app.js');
+      console.warn('[formularz] Brak adresu webhooka: prawdopodobnie stara wersja app.js z pamięci przeglądarki. Sprawdź, czy plik ma parametr ?v= w index.html.');
       return;
     }
 
